@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solicitar Produto - Barbearia dos Lunáticos</title><link rel="stylesheet" href="style.css">
+<style>
+.compra-main{width:min(650px,calc(100% - 32px));margin:45px auto;flex:1}
+.compra-main h1{text-align:center;color:#191919;margin-bottom:10px}
+.compra-sub{text-align:center;color:#555;margin-bottom:25px}
+.compra-card{background:#f4f4f4;padding:28px;border-radius:10px;box-shadow:0 5px 18px #0001}
+.produto-info{background:#ece5d1;border-left:4px solid #d4af37;padding:18px;margin-bottom:25px;border-radius:5px;color:#222}
+.produto-info strong{display:block;font-size:19px}
+.compra-campo{margin-bottom:20px}
+.compra-campo label{display:block;margin-bottom:7px;color:#222}
+.compra-campo input{display:block;width:100%;box-sizing:border-box;padding:13px;border:1px solid #ccc;border-radius:5px;font:inherit;background:white}
+.btn-comprar{display:block;width:100%;padding:14px;background:#191919;color:white;border:0;border-radius:5px;font:inherit;font-weight:bold;cursor:pointer}
+.btn-comprar:disabled{opacity:.45;cursor:not-allowed}
+.btn-comprar:hover:not(:disabled){background:#d4af37;color:#191919}
+.feedback{font-size:13px;color:#666;text-align:center;margin-bottom:12px}
+.feedback.erro-envio{color:#7b211a;font-weight:bold}
+.recuperar-produto{text-align:center;margin:0 0 12px}
+.recuperar-produto a,.recuperar-produto button{display:inline-block;color:#191919;padding:10px;font:inherit}
+.recuperar-produto button{background:transparent;border:0;text-decoration:underline;cursor:pointer}
+.recuperar-produto button[hidden]{display:none}
+.sucesso{display:none;text-align:center;background:white;border:1px solid #d4af37;border-radius:8px;padding:25px;margin-top:20px}
+.sucesso h2{color:#191919}
+.sucesso p{color:#555;margin:10px 0;overflow-wrap:anywhere}
+.sucesso a{color:#191919;font-weight:bold}
+.aviso{font-size:12px;color:#777;text-align:center;margin-top:15px}
+.toast-demo{position:fixed;z-index:999;top:24px;right:24px;max-width:360px;background:#246a3c;color:white;padding:15px 20px;border-radius:8px;box-shadow:0 5px 20px #0003;opacity:0;pointer-events:none;transform:translateY(-12px);transition:.25s}
+.toast-demo.visivel{opacity:1;transform:translateY(0)}
+@media(max-width:600px){.compra-card{padding:18px}.toast-demo{left:16px;right:16px;max-width:none}}
+@media(prefers-reduced-motion:reduce){.toast-demo{transition:none}}
+</style></head><body>
+<header>
+    <nav>
+        <div><img src="Imagem/WhatsApp Image 2026-11-15 at 10.41.31.jpeg" alt="Barbearia dos Lunáticos" class="logo-img"></div>
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="servicos.html">Serviços</a></li>
+            <li><a href="contato.html">Contato</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+</header>
+<main class="compra-main">
+<h1>Solicitar produto</h1><p class="compra-sub">Preencha seus dados para reservar um produto na loja.</p>
+<form class="compra-card" id="formCompra" action="processa_reserva.php" method="post" novalidate>
+<div class="produto-info"><strong id="produtoNome"></strong><span id="produtoPreco"></span></div>
+<div class="compra-campo"><label for="nomeCompra">Nome completo</label><input id="nomeCompra" name="nome" type="text" placeholder="Digite seu nome" autocomplete="name" required></div>
+<div class="compra-campo"><label for="emailCompra">E-mail</label><input id="emailCompra" name="email" type="email" placeholder="seuemail@exemplo.com" autocomplete="email" maxlength="254" required></div>
+<p class="feedback" id="feedbackCompra" aria-live="polite" aria-atomic="true" tabindex="-1">Preencha seu nome e um e-mail válido para liberar o envio.</p>
+<div class="recuperar-produto" id="recuperarProduto" hidden>
+    <a href="servicos.html#produtos">Ver outros produtos</a>
+    <button type="button" id="tentarProduto" hidden>Tentar novamente</button>
+</div>
+<button class="btn-comprar" id="enviarCompra" type="submit" disabled>Enviar solicitação</button>
+
+<div class="sucesso" id="sucessoCompra" role="region" aria-labelledby="compra-confirmada" aria-describedby="detalhesCompra" tabindex="-1">
+    <h2 id="compra-confirmada">Solicitação enviada com sucesso!</h2>
+    <p id="detalhesCompra"></p>
+    <a href="servicos.html#produtos">Voltar aos produtos</a>
+</div>
+</form></main>
+<footer>
+    <p>&copy; 2026 Barbearia dos Lunáticos - Todos os direitos reservados.</p>
+    <p>Seg a Sáb: 09h às 20h | Rua dos Lunáticos, 123</p>
+</footer>
+<script>
+(() => {
+ const params = new URLSearchParams(location.search);
+ const seletor = params.get('produto');
+ const form = document.getElementById('formCompra');
+ const produtoNome = document.getElementById('produtoNome');
+ const produtoPreco = document.getElementById('produtoPreco');
+ const nome = document.getElementById('nomeCompra');
+ const email = document.getElementById('emailCompra');
+ const botao = document.getElementById('enviarCompra');
+ const feedback = document.getElementById('feedbackCompra');
+ const recuperar = document.getElementById('recuperarProduto');
+ const tentar = document.getElementById('tentarProduto');
+ const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+ let produto = null;
+ let avisoProduto = 'Carregando produto...';
+ let enviando = false;
+ let concluido = false;
+
+ function validar() {
+   if (!produto) return avisoProduto;
+   const tamanhoNome = [...nome.value.trim()].length;
+   if (tamanhoNome < 2 || tamanhoNome > 120) return 'Informe um nome com 2 a 120 caracteres.';
+   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) return 'Informe um e-mail válido.';
+   return '';
+ }
+
+ function atualizar(aviso, falhou = false) {
+   const erro = validar();
+   botao.disabled = enviando || concluido || Boolean(erro);
+   feedback.classList.toggle('erro-envio', falhou || !recuperar.hidden);
+   feedback.textContent = aviso || erro || 'Tudo pronto! Você já pode enviar sua solicitação.';
+ }
+
+ function mostrarRecuperacao(aviso, podeTentar) {
+   avisoProduto = aviso;
+   recuperar.hidden = false;
+   tentar.hidden = !podeTentar;
+ }
+
+ async function carregarProduto() {
+   produtoNome.textContent = 'Produto da barbearia';
+   if (!seletor) {
+     mostrarRecuperacao('Escolha um produto para reservar.', false);
+     atualizar();
+     return;
+   }
+   avisoProduto = 'Carregando produto...';
+   recuperar.hidden = true;
+   atualizar();
+   try {
+     const resposta = await fetch('api/produtos.php?produto=' + encodeURIComponent(seletor));
+     const dados = await resposta.json().catch(() => null);
+     if (!resposta.ok || !dados?.produto) {
+       mostrarRecuperacao(dados?.erro || 'Não foi possível carregar o produto.', ![404, 422].includes(resposta.status));
+       return;
+     }
+     produto = dados.produto;
+     produtoNome.textContent = produto.nome;
+     produtoPreco.textContent = moeda.format(produto.preco);
+   } catch {
+     mostrarRecuperacao('Não foi possível carregar o produto.', true);
+   } finally {
+     atualizar();
+   }
+ }
+
+ const campos = [nome, email];
+ tentar.addEventListener('click', () => {
+   feedback.focus();
+   carregarProduto();
+ });
+ campos.forEach(campo => campo.addEventListener('input', () => atualizar()));
+ form.addEventListener('submit', async evento => {
+   evento.preventDefault();
+   if (enviando || concluido || validar()) return;
+   enviando = true;
+   campos.forEach(campo => { campo.readOnly = true; });
+   atualizar('Enviando solicitação...');
+
+   let erroEnvio = '';
+   try {
+     const resposta = await fetch(form.action, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+       body: JSON.stringify({ produto_id: Number(produto.id), nome: nome.value.trim(), email: email.value.trim() })
+     });
+     const dados = await resposta.json().catch(() => null);
+     if (resposta.status !== 201 || !dados?.reserva) {
+       erroEnvio = dados?.erro || 'Não foi possível reservar o produto. Tente novamente.';
+       if (resposta.status === 404) {
+         produto = null;
+         produtoPreco.textContent = '';
+         mostrarRecuperacao(erroEnvio, false);
+       }
+       return;
+     }
+
+     concluido = true;
+     const painel = document.getElementById('sucessoCompra');
+     const reserva = dados.reserva;
+     produtoPreco.textContent = moeda.format(reserva.preco);
+     document.getElementById('detalhesCompra').textContent =
+       nome.value.trim() + ', sua solicitação para ' + reserva.produto + ' (' + moeda.format(reserva.preco)
+       + ') foi recebida com sucesso! Protocolo #' + reserva.id + '.';
+     painel.style.display = 'block';
+     botao.style.display = 'none';
+     feedback.style.display = 'none';
+     const toast = document.createElement('div');
+     toast.className = 'toast-demo';
+     toast.setAttribute('aria-hidden', 'true');
+     toast.textContent = 'Solicitação de reserva recebida!';
+     document.body.appendChild(toast);
+     requestAnimationFrame(() => toast.classList.add('visivel'));
+     setTimeout(() => toast.classList.remove('visivel'), 4000);
+     painel.focus();
+   } catch {
+     erroEnvio = 'Não foi possível verificar a reserva. Tente novamente.';
+   } finally {
+     enviando = false;
+     campos.forEach(campo => { campo.readOnly = concluido; });
+     if (!concluido) {
+       atualizar(erroEnvio, true);
+       feedback.focus();
+     }
+   }
+ });
+ carregarProduto();
+})();
+</script><script src="script.js"></script></body></html>

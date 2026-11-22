@@ -1,0 +1,328 @@
+* {
+    margin: 0%;
+    padding: 0%;
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: "Font-Neue";
+    src: url('Fontes/Nexa-ExtraLight.ttf');
+    font-display: swap;
+}
+
+body {
+    background-color: #bdbdbd;
+    font-family: Font-Neue, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    padding: 20px 40px;
+    gap: 12px 24px;
+}
+
+.logo {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.logo span {
+    color: #d4af37;
+}
+
+nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px 12px;
+    list-style: none;
+}
+
+nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 8px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav a:hover,
+nav a[aria-current="page"] {
+    color: #d4af37;
+}
+
+nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-underline-offset: 0.35em;
+}
+
+:focus-visible {
+    outline: 3px solid #7b5d11;
+    outline-offset: 3px;
+}
+
+nav a:focus-visible,
+.btn-principal:focus-visible {
+    outline-color: #d4af37;
+}
+
+.banner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 450px;
+    background-color: #2b2b2b;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("Imagem/fundo.jpg");
+    background-size: cover;
+    background-position: center;
+    color: #ffffff;
+    padding: 20px;
+}
+
+.banner h1 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.banner p {
+    font-size: clamp(1rem, 3vw, 1.3125rem);
+    margin-bottom: 25px;
+}
+
+.btn-principal {
+    background-color: #d4af37;
+    color: #1a1a1a;
+    padding: 12px 25px;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.sobre {
+    padding: 50px 20px;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.sobre h2 {
+    margin-bottom: 15px;
+    font-size: 28px;
+}
+
+.container-servicos {
+    padding: 50px 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.subtitulo {
+    color: #555;
+    margin-top: 10px;
+    margin-bottom: 40px;
+}
+
+.grade-servicos {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.card-servico {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 25px;
+    width: min(100%, 300px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-servico h3 {
+    margin-bottom: 10px;
+    color: #1a1a1a;
+}
+
+.card-servico p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.preco {
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    color: #7b5d11;
+    margin-bottom: 15px;
+}
+
+.btn-agendar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    text-decoration: none;
+    text-align: center;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-agendar:hover {
+    background-color: #d4af37;
+    color: #1a1a1a;
+}
+
+.btn-agendar[aria-disabled="true"] {
+    background-color: #555;
+    color: #fff;
+    cursor: default;
+}
+
+.container-formulario {
+    padding: 50px 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.box-form {
+    background-color: #f4f4f4;
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.campo input,
+.campo textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 1rem;
+}
+
+.btn-enviar {
+    width: 100%;
+    min-height: 44px;
+    background-color: #d4af37;
+    color: #1a1a1a;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-enviar:hover {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.logo-img {
+    content: url("Imagem/Logo-Lunaticos-Branca.png");
+    height: 75px;
+    width: auto;
+    transform: scale(1.35);
+    transform-origin: left center;
+    max-width: 180px;
+    display: block;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+footer {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+    font-size: 14px;
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+/* Adaptação para celulares e telas pequenas */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px 12px;
+    }
+
+    nav ul {
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .logo-img {
+        transform-origin: center;
+    }
+
+    .banner {
+        min-height: 340px;
+        padding: 42px 20px;
+    }
+
+    .container-formulario,
+    .container-servicos {
+        padding: 32px 16px;
+    }
+
+    .container-formulario .box-form {
+        padding: 20px 16px;
+    }
+}
+
+.img-produto {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+

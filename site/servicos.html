@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviços - Barbearia dos Lunáticos</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <header>
+        <nav>
+            <div><img src="Imagem/WhatsApp Image 2026-11-15 at 10.41.31.jpeg" alt="Barbearia dos Lunáticos" class="logo-img"></div>
+              <ul>
+    <li><a href="index.html">Início</a></li>
+    <li><a href="servicos.html" aria-current="page">Serviços</a></li>
+    <li><a href="contato.html">Contato</a></li>
+    <li><a href="login.html">Login</a></li>
+</ul>
+</nav>
+</header>
+<main class="container-servicos">
+     <h1>Nossos Serviços</h1>
+        <p class="subtitulo">Escolha o tratamento ideal para o seu estilo.</p>
+
+        <div class="grade-servicos">
+            <div class="card-servico">
+                <h3>Corte Clássico / Degradê</h3>
+                <p>Corte na tesoura ou máquina com acabamento na navalha e lavagem.</p>
+                <span class="preco" data-preco-servico="corte-classico-degrade">Consultando preço…</span>
+                <a href="agendamento.html?servico=Corte%20Cl%C3%A1ssico%20%2F%20Degrad%C3%AA" class="btn-agendar">Agendar Horário</a>
+            </div>
+
+            <div class="card-servico">
+                <h3>Barba Tradicional</h3>
+                <p>Modelagem completa com toalha quente, óleo hidratante e navalha.</p>
+                <span class="preco" data-preco-servico="barba-tradicional">Consultando preço…</span>
+                <a href="agendamento.html?servico=Barba%20Tradicional" class="btn-agendar">Agendar Horário</a>
+            </div>
+
+            <div class="card-servico">
+                <h3>Combo dos Lunáticos</h3>
+                <p>Corte completo + barba com toalha quente e finalização premium.</p>
+                <span class="preco" data-preco-servico="combo-dos-lunaticos">Consultando preço…</span>
+                <a href="agendamento.html?servico=Combo%20dos%20Lunáticos" class="btn-agendar">Agendar Horário</a>
+            </div>
+        </div>
+
+        <h2 id="produtos" style="margin-top: 60px;">Nossos Produtos</h2>
+        <p class="subtitulo">Leve a qualidade da Barbearia dos Lunáticos para casa.</p>
+
+        <div class="grade-servicos">
+            <div class="card-servico">
+                <img src="Imagem/pomada.jpg" alt="Pomada Modeladora Matte" class="img-produto">
+                <h3>Pomada Modeladora Matte</h3>
+                <p>Fixação forte com efeito seco e natural para modelar o penteado o dia todo.</p>
+                <span class="preco" data-preco-produto="pomada-modeladora-matte">Consultando preço…</span>
+                <a href="compra.html?produto=pomada-modeladora-matte" class="btn-agendar">Reservar na Loja</a>
+            </div>
+
+            <div class="card-servico">
+                <img src="Imagem/oleo.jpg" alt="Óleo para Barba Hidratante" class="img-produto">
+                <h3>Óleo para Barba Hidratante</h3>
+                <p>Fórmula com óleos essenciais que amacia os fios, dá brilho e evita coceiras.</p>
+                <span class="preco" data-preco-produto="oleo-para-barba-hidratante">Consultando preço…</span>
+                <a href="compra.html?produto=oleo-para-barba-hidratante" class="btn-agendar">Reservar na Loja</a>
+            </div>
+
+            <div class="card-servico">
+                <img src="Imagem/shampoo.jpg" alt="Shampoo Refrescante 3 em 1" class="img-produto">
+                <h3>Shampoo Refrescante 3 em 1</h3>
+                <p>Limpeza profunda com extrato de menta para cabelo, barba e corpo.</p>
+                <span class="preco" data-preco-produto="shampoo-refrescante-3-em-1">Consultando preço…</span>
+                <a href="compra.html?produto=shampoo-refrescante-3-em-1" class="btn-agendar">Reservar na Loja</a>
+            </div>
+        </div>
+</main>
+<footer>
+    <p>&copy; 2026 Barbearia dos Lunáticos - Todos os direitos reservados.</p>
+    <p>Seg a Sáb: 09h às 20h | Rua dos Lunáticos, 123</p>
+</footer>
+<script src="script.js"></script>
+<script>
+(() => {
+    const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    async function carregarPrecos(atributo, recurso, montarLink) {
+        const precos = document.querySelectorAll('[' + atributo + ']');
+        try {
+            const resposta = await fetch('api/' + recurso + '.php');
+            if (!resposta.ok) throw new Error('Catálogo indisponível');
+            const dados = await resposta.json();
+            const catalogo = new Map(dados[recurso].map(item => [item.codigo, item]));
+            for (const preco of precos) {
+                const item = catalogo.get(preco.getAttribute(atributo));
+                const link = preco.parentElement.querySelector('.btn-agendar');
+                if (item) {
+                    preco.textContent = moeda.format(item.preco);
+                    link.href = montarLink(item);
+                } else {
+                    preco.textContent = 'Indisponível';
+                    link.removeAttribute('href');
+                    link.setAttribute('role', 'link');
+                    link.setAttribute('aria-disabled', 'true');
+                }
+            }
+        } catch {
+            precos.forEach(preco => { preco.textContent = 'Preço indisponível'; });
+        }
+    }
+
+    carregarPrecos('data-preco-servico', 'servicos', item => 'agendamento.html?servico=' + encodeURIComponent(item.nome));
+    carregarPrecos('data-preco-produto', 'produtos', item => 'compra.html?produto=' + encodeURIComponent(item.codigo));
+})();
+</script>
+<script src="script.js"></script>
+
+</body>
+</html>

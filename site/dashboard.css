@@ -1,0 +1,94 @@
+.painel {
+    width: min(100%, 1180px);
+    text-align: left;
+}
+
+.painel-topo,
+.painel-acoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.painel-topo {
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.painel-topo p {
+    margin-top: 6px;
+}
+
+.painel-lista {
+    padding: clamp(12px, 3vw, 30px);
+}
+
+.painel-mensagem {
+    background: #ece5d1;
+    border-left: 4px solid #d4af37;
+    padding: 10px 14px;
+    margin: 14px 0;
+}
+
+.painel-orientacao {
+    display: none;
+    margin-top: 10px;
+    color: #555;
+}
+
+.painel-tabela {
+    margin-top: 14px;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+    .painel-orientacao {
+        display: block;
+    }
+}
+
+.painel-tabela table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.painel-tabela th,
+.painel-tabela td {
+    border-bottom: 1px solid #ddd;
+    padding: 12px 10px;
+    vertical-align: top;
+}
+
+.painel-tabela thead {
+    background: #ece5d1;
+}
+
+.painel-tabela time {
+    white-space: nowrap;
+}
+
+.painel-tabela small {
+    display: block;
+    margin-top: 4px;
+}
+
+.painel-observacoes {
+    min-width: 110px;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.painel-acoes button {
+    font: inherit;
+    cursor: pointer;
+    margin: 0;
+}
+
+.painel-cancelar {
+    background: #fff;
+    border: 1px solid #1a1a1a;
+    color: #1a1a1a;
+}

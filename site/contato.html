@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato - Barbearia dos Lunáticos</title>
+    <link rel="stylesheet" href="style.css">
+
+
+<style>
+.sim-feedback {font-size:13px;color:#666;text-align:center;margin:0 0 12px;line-height:1.45}
+.sim-feedback.erro-envio {color:#7b211a;font-weight:bold}
+.btn-enviar:disabled {opacity:.48;cursor:not-allowed}
+.sim-success {display:none;background:#fff;border:1px solid #d4af37;border-radius:8px;padding:20px;margin-top:18px;text-align:center;color:#202020}
+.sim-success h2 {font-size:20px;margin:0 0 8px}
+.sim-success p {font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.sim-success a {color:#111;font-weight:600}
+.sim-toast {position:fixed;top:20px;right:20px;z-index:1000;background:#236b3a;color:#fff;padding:15px 20px;border-radius:8px;box-shadow:0 6px 20px #0004;max-width:340px;opacity:0;transform:translateY(-12px);pointer-events:none;transition:opacity .25s,transform .25s}
+.sim-toast.visible {opacity:1;transform:translateY(0)}
+@media(max-width:600px){.sim-toast{left:15px;right:15px;max-width:none}}
+@media(prefers-reduced-motion:reduce){.sim-toast{transition:none}}
+</style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div><img src="Imagem/Logo-Lunaticos-Branca.png" alt="Barbearia dos Lunáticos" class="logo-img"></div>
+            <ul>
+                <li><a href="index.html">Início</a></li>
+                <li><a href="servicos.html">Serviços</a></li>
+                <li><a href="contato.html" aria-current="page">Contato</a></li>
+                <li><a href="login.html">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+<main class="container-formulario">
+    <h1>Entre em Contato</h1>
+    <p class="subtitulo">Tem alguma dúvida ou sugestão? Mande uma mensagem para nossa equipe.</p>
+
+    <form id="form-contato" action="processa_contato.php" method="post" novalidate class="box-form">
+    <div class="campo">
+        <label for="nome">Nome Completo:</label>
+        <input type="text" id="nome" name="nome" placeholder="Digite seu nome" autocomplete="name" required>
+    </div>
+
+    <div class="campo">
+        <label for="email-contato">E-mail:</label>
+        <input type="email" id="email-contato" name="email" placeholder="seuemail@exemplo.com" autocomplete="email" maxlength="254" required>
+    </div>
+
+    <div class="campo">
+        <label for="mensagem">Mensagem:</label>
+        <textarea id="mensagem" name="mensagem" rows="4" placeholder="Como podemos ajudar?" required></textarea>
+    </div>
+
+    <p id="form-feedback" class="sim-feedback" aria-live="polite" aria-atomic="true" tabindex="-1">Preencha nome, e-mail e mensagem para liberar o envio.</p>
+    <button type="submit" class="btn-enviar" id="btn-enviar" disabled>Enviar Mensagem</button>
+    <div class="sim-success" id="sim-success" role="region" aria-labelledby="contato-confirmado" aria-describedby="sim-details" tabindex="-1">
+        <h2 id="contato-confirmado">Mensagem enviada com sucesso!</h2>
+        <p id="sim-details"></p>
+        <a href="contato.html">Escrever outra mensagem</a>
+    </div>
+</form>
+</main>
+<footer>
+    <p>&copy; 2026 Barbearia dos Lunáticos - Todos os direitos reservados.</p>
+    <p>Seg a Sáb: 09h às 20h | Rua dos Lunáticos, 123</p>
+</footer>
+<script src="script.js"></script>
+
+
+<script>
+(() => {
+ const form=document.getElementById('form-contato');
+ const nome=document.getElementById('nome');
+ const email=document.getElementById('email-contato');
+ const mensagem=document.getElementById('mensagem');
+ const botao=document.getElementById('btn-enviar');
+ const feedback=document.getElementById('form-feedback');
+ let enviando = false;
+ let concluido = false;
+
+ function validar() {
+   const tamanhoNome = [...nome.value.trim()].length;
+   const tamanhoMensagem = [...mensagem.value.trim()].length;
+   if (tamanhoNome < 2 || tamanhoNome > 120) return 'Informe um nome com 2 a 120 caracteres.';
+   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) return 'Informe um e-mail válido.';
+   if (tamanhoMensagem < 10 || tamanhoMensagem > 3000) return 'Informe uma mensagem com 10 a 3000 caracteres.';
+   return '';
+ }
+
+ function atualizar(aviso, falhou = false) {
+   const erro = validar();
+   botao.disabled = enviando || concluido || Boolean(erro);
+   feedback.classList.toggle('erro-envio', falhou);
+   feedback.textContent = aviso || erro || 'Tudo pronto! Você já pode enviar a mensagem.';
+ }
+
+ const campos = [nome, email, mensagem];
+ campos.forEach(campo => campo.addEventListener('input', () => atualizar()));
+ form.addEventListener('submit', async evento => {
+   evento.preventDefault();
+   if (enviando || concluido || validar()) return;
+   enviando = true;
+   campos.forEach(campo => { campo.readOnly = true; });
+   atualizar('Enviando mensagem...');
+
+   let erroEnvio = '';
+   try {
+     const resposta = await fetch(form.action, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+       body: JSON.stringify({ nome: nome.value.trim(), email: email.value.trim(), mensagem: mensagem.value.trim() })
+     });
+     const dados = await resposta.json().catch(() => null);
+     if (resposta.status !== 201 || !dados?.mensagem_id) {
+       erroEnvio = dados?.erro || 'Não foi possível enviar a mensagem. Tente novamente.';
+       return;
+     }
+
+     concluido = true;
+     const painel = document.getElementById('sim-success');
+     document.getElementById('sim-details').textContent = 'Obrigado, ' + nome.value.trim()
+       + '! Sua mensagem foi recebida. Protocolo #' + dados.mensagem_id + '.';
+     painel.style.display = 'block';
+     botao.style.display = 'none';
+     feedback.style.display = 'none';
+     const toast = document.createElement('div');
+     toast.className = 'sim-toast';
+     toast.setAttribute('aria-hidden', 'true');
+     toast.textContent = 'Mensagem enviada com sucesso!';
+     document.body.appendChild(toast);
+     requestAnimationFrame(() => toast.classList.add('visible'));
+     setTimeout(() => toast.classList.remove('visible'), 4500);
+     painel.focus();
+   } catch {
+     erroEnvio = 'Não foi possível verificar o envio da mensagem. Tente novamente.';
+   } finally {
+     enviando = false;
+     campos.forEach(campo => { campo.readOnly = concluido; });
+     if (!concluido) {
+       atualizar(erroEnvio, true);
+       feedback.focus();
+     }
+   }
+ });
+ atualizar();
+})();
+</script>
+<script src="script.js"></script>
+</body>
+</html>

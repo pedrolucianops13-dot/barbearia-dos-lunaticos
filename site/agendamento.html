@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento - Barbearia dos Lunáticos</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .agendamento-container {
+            width: min(900px, calc(100% - 32px));
+            margin: 45px auto;
+            flex: 1;
+        }
+        .agendamento-topo { text-align: center; margin-bottom: 28px; }
+        .agendamento-topo h1 { color: #1a1a1a; margin-bottom: 9px; }
+        .agendamento-topo p { color: #555; }
+        .agendamento-card {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 5px 18px rgba(0,0,0,.06);
+        }
+        .etapa { margin-bottom: 28px; }
+        .etapa h2 {
+            font-size: 20px;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .etapa-numero {
+            display: inline-flex;
+            width: 29px; height: 29px;
+            align-items: center; justify-content: center;
+            background: #d4af37; color: #1a1a1a;
+            border-radius: 50%; font-weight: bold;
+            margin-right: 8px;
+        }
+        .opcoes-servico, .dias-semana, .horarios {
+            display: grid; gap: 10px;
+        }
+        .opcoes-servico { grid-template-columns: repeat(3, 1fr); }
+        .dias-semana { grid-template-columns: repeat(7, 1fr); }
+        .horarios { grid-template-columns: repeat(5, 1fr); }
+        .mensagem-opcoes { grid-column: 1 / -1; color: #666; }
+        .opcao, .dia, .horario {
+            border: 1px solid #ccc; border-radius: 7px;
+            background: #fff; padding: 12px 8px;
+            min-height: 44px;
+            cursor: pointer; color: #1a1a1a;
+            font: inherit; transition: .2s;
+        }
+        .opcao strong, .dia strong { display: block; }
+        .opcao small, .dia small { display: block; color: #666; margin-top: 5px; }
+        .opcao:hover, .dia:hover, .horario:hover { border-color: #d4af37; }
+        .opcao.selecionado, .dia.selecionado, .horario.selecionado {
+            background: #1a1a1a; border-color: #d4af37; color: #fff;
+        }
+        .opcao.selecionado small, .dia.selecionado small { color: #e5d28b; }
+        .dia:disabled, .horario:disabled {
+            opacity: .35; cursor: not-allowed; text-decoration: line-through;
+        }
+        .campos-agendamento {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .campos-agendamento .campo { text-align: left; }
+        .campos-agendamento .campo:last-child { grid-column: 1 / -1; }
+        .campos-agendamento input, .campos-agendamento textarea {
+            width: 100%; padding: 12px; border: 1px solid #ccc;
+            border-radius: 5px; font: inherit; background: #fff;
+        }
+        .resumo-agendamento {
+            background: #ece5d1; border-left: 4px solid #d4af37;
+            padding: 14px; border-radius: 5px; text-align: left;
+            color: #292929; margin-bottom: 18px;
+        }
+        .btn-solicitar {
+            width: 100%; border: 0; border-radius: 5px;
+            background: #1a1a1a; color: #fff;
+            padding: 14px; font: inherit; font-weight: bold;
+            cursor: pointer; transition: .2s;
+        }
+        .btn-solicitar:hover:not(:disabled) { background: #d4af37; color: #1a1a1a; }
+        .btn-solicitar:disabled { opacity: .45; cursor: not-allowed; }
+        .feedback-formulario { color: #666; font-size: 13px; text-align: center; margin-bottom: 10px; }
+        .feedback-formulario.erro-envio { color: #7b211a; font-weight: bold; }
+        .toast-demo { position: fixed; z-index: 999; top: 24px; right: 24px; max-width: 360px; background: #246a3c; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 5px 20px #0003; opacity: 0; pointer-events: none; transform: translateY(-12px); transition: .25s; }
+        .toast-demo.visivel { opacity: 1; transform: translateY(0); }
+        .mensagem-sucesso {
+            display: none; text-align: center; padding: 25px;
+            background: #fff; border: 1px solid #d4af37;
+            border-radius: 8px; margin-top: 20px;
+        }
+        .mensagem-sucesso h2 { color: #1a1a1a; margin-bottom: 10px; }
+        .mensagem-sucesso p { color: #555; margin: 7px 0; overflow-wrap: anywhere; }
+        .voltar-servicos {
+            display: inline-block; margin-top: 20px;
+            color: #1a1a1a; font-weight: bold;
+        }
+        .aviso-demo { color: #666; font-size: 12px; text-align: center; margin-top: 14px; }
+        @media (max-width: 650px) {
+            .agendamento-card { padding: 18px 14px; }
+            .opcoes-servico { grid-template-columns: 1fr; }
+            .dias-semana { grid-template-columns: repeat(4, 1fr); }
+            .horarios { grid-template-columns: repeat(3, 1fr); }
+            .campos-agendamento { grid-template-columns: 1fr; }
+            .campos-agendamento .campo:last-child { grid-column: auto; }
+            .dia { padding: 10px 4px; font-size: 13px; }
+            .toast-demo { left: 16px; right: 16px; max-width: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .toast-demo, .opcao, .dia, .horario, .btn-solicitar { transition: none; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <nav>
+        <div><img src="Imagem/WhatsApp Image 2026-11-15 at 10.41.31.jpeg" alt="Barbearia dos Lunáticos" class="logo-img"></div>
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="servicos.html">Serviços</a></li>
+            <li><a href="contato.html">Contato</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main class="agendamento-container">
+    <div class="agendamento-topo">
+        <h1>Agende seu horário</h1>
+        <p>Escolha o serviço, a data e o melhor horário para você.</p>
+    </div>
+
+    <form class="agendamento-card" id="formAgendamento" action="processa_agendamento.php" method="post" novalidate>
+        <section class="etapa" aria-labelledby="etapa-servico">
+            <h2 id="etapa-servico"><span class="etapa-numero" aria-hidden="true">1</span>Escolha o serviço</h2>
+            <div class="opcoes-servico" id="opcoesServico">
+                <p class="mensagem-opcoes">Carregando serviços...</p>
+            </div>
+        </section>
+
+        <section class="etapa" aria-labelledby="etapa-dia">
+            <h2 id="etapa-dia"><span class="etapa-numero" aria-hidden="true">2</span>Escolha o dia</h2>
+            <div class="dias-semana" id="diasSemana">
+                <p class="mensagem-opcoes">Carregando datas...</p>
+            </div>
+        </section>
+
+        <section class="etapa" aria-labelledby="etapa-horario">
+            <h2 id="etapa-horario"><span class="etapa-numero" aria-hidden="true">3</span>Escolha o horário</h2>
+            <div class="horarios" id="listaHorarios">
+                <p class="mensagem-opcoes">Primeiro selecione uma data.</p>
+            </div>
+        </section>
+
+        <section class="etapa" aria-labelledby="etapa-dados">
+            <h2 id="etapa-dados"><span class="etapa-numero" aria-hidden="true">4</span>Informe seus dados</h2>
+            <div class="campos-agendamento">
+                <div class="campo">
+                    <label for="nome">Nome completo</label>
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome" autocomplete="name" required>
+                </div>
+                <div class="campo">
+                    <label for="telefone">Telefone / WhatsApp</label>
+                    <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" autocomplete="tel" required>
+                </div>
+                <div class="campo">
+                    <label for="observacoes">Observações (opcional)</label>
+                    <textarea id="observacoes" name="observacoes" rows="3" placeholder="Alguma preferência?"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <div class="resumo-agendamento" id="resumo">
+            <strong>Resumo do agendamento</strong>
+            <p id="resumoTexto">Selecione o serviço, a data e o horário para continuar.</p>
+        </div>
+        <p id="feedbackFormulario" class="feedback-formulario" aria-live="polite" aria-atomic="true" tabindex="-1">Preencha todos os dados obrigatórios para liberar o envio.</p>
+        <button type="submit" class="btn-solicitar" id="btnSolicitar" disabled>Enviar solicitação</button>
+        
+        <div class="mensagem-sucesso" id="mensagemSucesso" role="region" aria-labelledby="agendamento-recebido" aria-describedby="confirmacaoDetalhes" tabindex="-1">
+            <h2 id="agendamento-recebido">Solicitação enviada com sucesso!</h2>
+            <p>A solicitação aguarda confirmação da barbearia.</p>
+            <p id="confirmacaoDetalhes"></p>
+            
+            <a href="servicos.html" class="voltar-servicos">Voltar aos serviços</a>
+        </div>
+    </form>
+</main>
+
+<footer>
+    <p>&copy; 2026 Barbearia dos Lunáticos - Todos os direitos reservados.</p>
+    <p>Seg a Sáb: 09h às 20h | Rua dos Lunáticos, 123</p>
+</footer>
+
+<script>
+(() => {
+    const form = document.getElementById('formAgendamento');
+    const servicosContainer = document.getElementById('opcoesServico');
+    const diasContainer = document.getElementById('diasSemana');
+    const horariosContainer = document.getElementById('listaHorarios');
+    const resumoTexto = document.getElementById('resumoTexto');
+    const nomeCampo = document.getElementById('nome');
+    const telefoneCampo = document.getElementById('telefone');
+    const observacoesCampo = document.getElementById('observacoes');
+    const botaoEnviar = document.getElementById('btnSolicitar');
+    const feedback = document.getElementById('feedbackFormulario');
+    const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const servicoURL = new URLSearchParams(window.location.search).get('servico');
+
+    let servicoSelecionado = null;
+    let dataSelecionada = null;
+    let horarioSelecionado = null;
+    let consultaHorarios = 0;
+    let enviando = false;
+    let concluido = false;
+
+    async function obterJson(url, opcoes) {
+        const resposta = await fetch(url, opcoes);
+        const dados = await resposta.json().catch(() => null);
+        if (!resposta.ok || !dados) {
+            const erro = new Error(dados?.erro || 'O servidor não respondeu como esperado. Tente novamente.');
+            erro.status = resposta.status;
+            throw erro;
+        }
+        return { status: resposta.status, dados };
+    }
+
+    function mostrarMensagem(container, texto, repetir) {
+        const mensagem = document.createElement('p');
+        mensagem.className = 'mensagem-opcoes';
+        mensagem.textContent = texto;
+        container.replaceChildren(mensagem);
+        if (repetir) {
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.className = 'opcao mensagem-opcoes';
+            botao.textContent = 'Tentar novamente';
+            botao.addEventListener('click', repetir);
+            container.appendChild(botao);
+        }
+    }
+
+    function criarOpcao(classe, titulo, detalhe) {
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.className = classe;
+        botao.setAttribute('aria-pressed', 'false');
+        if (detalhe === undefined) {
+            botao.textContent = titulo;
+        } else {
+            const rotulo = document.createElement('strong');
+            const complemento = document.createElement('small');
+            rotulo.textContent = titulo;
+            complemento.textContent = detalhe;
+            botao.append(rotulo, complemento);
+        }
+        return botao;
+    }
+
+    function marcarOpcao(container, botao) {
+        const anterior = container.querySelector('.selecionado');
+        if (anterior) {
+            anterior.classList.remove('selecionado');
+            anterior.setAttribute('aria-pressed', 'false');
+        }
+        botao.classList.add('selecionado');
+        botao.setAttribute('aria-pressed', 'true');
+    }
+
+    function formatarData(data) {
+        const [ano, mes, dia] = data.split('-');
+        return [dia, mes, ano].join('/');
+    }
+
+    async function carregarServicos() {
+        mostrarMensagem(servicosContainer, 'Carregando serviços...');
+        try {
+            const { dados } = await obterJson('api/servicos.php');
+            if (dados.servicos.length === 0) {
+                mostrarMensagem(servicosContainer, 'Nenhum serviço disponível para agendamento.');
+                return;
+            }
+            servicosContainer.replaceChildren();
+            for (const servico of dados.servicos) {
+                const botao = criarOpcao('opcao', servico.nome, moeda.format(servico.preco));
+                botao.dataset.servico = servico.nome;
+
+                function selecionarServico() {
+                    if (enviando || concluido) return;
+                    marcarOpcao(servicosContainer, botao);
+                    servicoSelecionado = servico;
+                    atualizarFormulario();
+                }
+
+                botao.addEventListener('click', selecionarServico);
+                servicosContainer.appendChild(botao);
+                if (servico.nome === servicoURL) selecionarServico();
+            }
+        } catch {
+            mostrarMensagem(servicosContainer, 'Não foi possível carregar os serviços.', carregarServicos);
+        }
+    }
+
+    async function carregarDias() {
+        mostrarMensagem(diasContainer, 'Carregando datas...');
+        try {
+            const { dados } = await obterJson('api/disponibilidade.php');
+            if (dados.datas.length === 0) {
+                mostrarMensagem(diasContainer, 'Nenhuma data disponível para agendamento.');
+                return;
+            }
+            diasContainer.replaceChildren();
+            for (const data of dados.datas) {
+                // A data vem da barbearia. UTC mantém o dia da semana estável no navegador.
+                const diaSemana = new Date(data + 'T00:00:00Z').getUTCDay();
+                const botao = criarOpcao('dia', nomesDias[diaSemana], formatarData(data).slice(0, 5));
+                botao.setAttribute('aria-label', nomesDias[diaSemana] + ', ' + formatarData(data));
+                botao.dataset.data = data;
+                botao.addEventListener('click', () => {
+                    if (enviando || concluido) return;
+                    marcarOpcao(diasContainer, botao);
+                    dataSelecionada = data;
+                    horarioSelecionado = null;
+                    atualizarFormulario();
+                    carregarHorarios(data);
+                });
+                diasContainer.appendChild(botao);
+            }
+        } catch {
+            mostrarMensagem(diasContainer, 'Não foi possível carregar as datas.', carregarDias);
+        }
+    }
+
+    async function carregarHorarios(data) {
+        const consulta = ++consultaHorarios;
+        mostrarMensagem(horariosContainer, 'Consultando horários...');
+        try {
+            const { dados } = await obterJson('api/disponibilidade.php?data=' + encodeURIComponent(data));
+            // Uma resposta de um dia anterior pode chegar depois da resposta do dia atual.
+            if (consulta !== consultaHorarios) return;
+            if (dados.horarios.length === 0) {
+                mostrarMensagem(horariosContainer, 'Nenhum horário disponível para este dia.');
+                return;
+            }
+            horariosContainer.replaceChildren();
+            for (const horario of dados.horarios) {
+                const botao = criarOpcao('horario', horario);
+                botao.addEventListener('click', () => {
+                    if (enviando || concluido) return;
+                    marcarOpcao(horariosContainer, botao);
+                    horarioSelecionado = horario;
+                    atualizarFormulario();
+                });
+                horariosContainer.appendChild(botao);
+            }
+        } catch (erro) {
+            if (consulta !== consultaHorarios) return;
+            if (erro.status === 422) {
+                dataSelecionada = null;
+                horarioSelecionado = null;
+                atualizarFormulario();
+                mostrarMensagem(horariosContainer, 'Esta data não está mais disponível. Escolha outra data.');
+                carregarDias();
+                return;
+            }
+            mostrarMensagem(horariosContainer, 'Não foi possível consultar os horários.', () => carregarHorarios(data));
+        }
+    }
+
+    function validarFormulario() {
+        if (!servicoSelecionado || !dataSelecionada || !horarioSelecionado) {
+            return 'Escolha o serviço, a data e o horário para continuar.';
+        }
+        const tamanhoNome = [...nomeCampo.value.trim()].length;
+        if (tamanhoNome < 2 || tamanhoNome > 120) {
+            return 'Informe um nome com 2 a 120 caracteres.';
+        }
+        const telefone = telefoneCampo.value.trim();
+        let digitos = telefone.replace(/\D/g, '');
+        if (/^55\d{10,11}$/.test(digitos)) {
+            digitos = digitos.slice(2);
+        } else if (telefone.startsWith('+')) {
+            return 'Informe um telefone válido com DDD.';
+        }
+        if (!/^(?:\+55[ .-]*)?[0-9() .-]{10,30}$/.test(telefone) || ![10, 11].includes(digitos.length)) {
+            return 'Informe um telefone válido com DDD.';
+        }
+        if ([...observacoesCampo.value.trim()].length > 500) {
+            return 'As observações podem ter até 500 caracteres.';
+        }
+        return '';
+    }
+
+    function atualizarFormulario(mensagem, falhou = false) {
+        const partes = [];
+        if (servicoSelecionado) partes.push(servicoSelecionado.nome + ' — ' + moeda.format(servicoSelecionado.preco));
+        if (dataSelecionada) partes.push(formatarData(dataSelecionada));
+        if (horarioSelecionado) partes.push(horarioSelecionado);
+        resumoTexto.textContent = partes.length ? partes.join(' • ') : 'Selecione o serviço, a data e o horário para continuar.';
+
+        const erro = validarFormulario();
+        botaoEnviar.disabled = enviando || concluido || Boolean(erro);
+        botaoEnviar.textContent = enviando ? 'Enviando solicitação...' : 'Enviar solicitação';
+        feedback.classList.toggle('erro-envio', falhou);
+        feedback.textContent = mensagem || erro || 'Tudo pronto! Você já pode enviar sua solicitação.';
+    }
+
+    function mostrarSucesso(agendamento) {
+        const painel = document.getElementById('mensagemSucesso');
+        const detalhes = document.getElementById('confirmacaoDetalhes');
+        detalhes.textContent = agendamento.nome + ', sua solicitação para ' + agendamento.servico
+            + ', no dia ' + formatarData(agendamento.data) + ' às ' + agendamento.horario
+            + ', foi recebida com sucesso! Protocolo #' + agendamento.id + '.';
+        painel.style.display = 'block';
+        botaoEnviar.style.display = 'none';
+        feedback.style.display = 'none';
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-demo';
+        toast.setAttribute('aria-hidden', 'true');
+        toast.textContent = 'Solicitação de agendamento enviada com sucesso!';
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('visivel'));
+        setTimeout(() => toast.classList.remove('visivel'), 4000);
+        painel.focus();
+    }
+
+    const campos = [nomeCampo, telefoneCampo, observacoesCampo];
+    for (const campo of campos) {
+        campo.addEventListener('input', () => atualizarFormulario());
+    }
+
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (enviando || concluido || validarFormulario()) return;
+
+        enviando = true;
+        campos.forEach(campo => { campo.readOnly = true; });
+        atualizarFormulario('Enviando sua solicitação...');
+        let mensagemErro = '';
+        try {
+            const { status, dados } = await obterJson(form.action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    servico_id: Number(servicoSelecionado.id),
+                    data: dataSelecionada,
+                    horario: horarioSelecionado,
+                    nome: nomeCampo.value.trim(),
+                    telefone: telefoneCampo.value.trim(),
+                    observacoes: observacoesCampo.value.trim()
+                })
+            });
+            if (status !== 201 || !dados.agendamento) {
+                throw new Error('Não foi possível verificar o recebimento da solicitação.');
+            }
+            concluido = true;
+            mostrarSucesso(dados.agendamento);
+        } catch (erro) {
+            mensagemErro = erro.status ? erro.message : 'Não foi possível verificar o envio. Confira o horário e tente novamente.';
+            if (erro.status === 409) {
+                horarioSelecionado = null;
+                carregarHorarios(dataSelecionada);
+            }
+        } finally {
+            enviando = false;
+            campos.forEach(campo => { campo.readOnly = concluido; });
+            if (!concluido) {
+                atualizarFormulario(mensagemErro, true);
+                feedback.focus();
+            }
+        }
+    });
+
+    carregarServicos();
+    carregarDias();
+    atualizarFormulario();
+})();
+</script>
+<script src="script.js"></script>
+</body>
+</html>
