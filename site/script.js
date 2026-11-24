@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const pegar = (id) => document.getElementById(id);
 
-    // 1. Máscara automática de Telefone / WhatsApp (adaptada do código do Carlos)
+    // 1. Máscara automática de Telefone / WhatsApp 
     const inputsTelefone = document.querySelectorAll('input[type="tel"], input[name="telefone"]');
     inputsTelefone.forEach((campo) => {
         campo.addEventListener('input', () => {
